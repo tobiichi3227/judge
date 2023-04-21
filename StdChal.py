@@ -742,7 +742,7 @@ class StdChal:
             {
                 0: infile_fd,
                 1: outpipe_fd[1],
-                2: outpipe_fd[1],
+                2: StdChal.null_fd,
             }, \
             '/home/%d/run_%d'%(self.uniqid, judge_uid), 'container/standard', \
             judge_uid, judge_gid, timelimit, memlimit, \
