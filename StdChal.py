@@ -414,7 +414,8 @@ class StdChal:
                 verfile = open(compile_path + '/verdict.txt', 'rb')
                 # To fix decoding error.
                 # Force convert the binary string to string temporarily.
-                verdict = ''.join(chr(c) for c in verfile.read(140))
+                # verdict = ''.join(chr(c) for c in verfile.read(140))
+                verdict = verfile.read().decode().replace('\t', '    ')
                 verfile.close()
             callback((stat['detect_error'], verdict))
 
@@ -564,7 +565,8 @@ class StdChal:
                 verfile = open(compile_path + '/verdict.txt', 'rb')
                 # To fix decoding error.
                 # Force convert the binary string to string temporarily.
-                verdict = ''.join(chr(c) for c in verfile.read(140))
+                # verdict = ''.join(chr(c) for c in verfile.read(140))
+                verdict = verfile.read().decode().replace('\t', '    ')
                 verfile.close()
             callback((stat['detect_error'], verdict))
 
@@ -933,7 +935,7 @@ class IORedirJudge:
             if result_pass is not None and result_stat is not None:
                 with StackContext(Privilege.fileaccess):
                     verfile = open(verdict_path, 'r')
-                    verdict = verfile.read(140)
+                    verdict = verfile.read().replace('\t', '    ')
                     verfile.close()
                 callback((result_pass, result_stat, verdict))
                 return
