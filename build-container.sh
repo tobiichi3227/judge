@@ -16,15 +16,19 @@ cp -a /usr/bin/clang++ $1/usr/bin/clang++
 cp /usr/bin/as $1/usr/bin/as
 cp /usr/bin/ld $1/usr/bin/ld
 cp /usr/bin/make $1/usr/bin/make
-cp /usr/bin/python3.6 $1/usr/bin/python3.6
+cp /usr/bin/python3.8 $1/usr/bin/python3.8
 cp -a /usr/lib/x86_64-linux-gnu $1/usr/lib/x86_64-linux-gnu
 cp -a /usr/lib/gcc $1/usr/lib/gcc
-cp -a /usr/lib/llvm-6.0 $1/usr/lib/llvm-6.0
-cp -a /usr/lib/python3.6 $1/usr/lib/python3.6
+cp -a /usr/lib/llvm-10 $1/usr/lib/llvm-10
+cp -a /usr/lib/python3.8 $1/usr/lib/python3.8
 cp -a /usr/lib/locale $1/usr/lib/locale
 cp -a /usr/include $1/usr/include
 cp -a /lib/x86_64-linux-gnu $1/lib/x86_64-linux-gnu
 cp -a /lib64/ld-linux-x86-64.so.2 $1/lib64/ld-linux-x86-64.so.2
+
+cp -a /usr/bin/rustc $1/usr/bin/rustc
+cp -a /usr/lib/rustlib $1/usr/lib/rustlib
+cp -a /usr/bin/x86_64-linux-gnu-gcc-9 $1/usr/bin/cc
 
 sudo chown -R judge:judge $1
 sudo setfacl -R -m d:g:judge:rwx $1

@@ -67,7 +67,7 @@ class JudgeDispatcher:
             check_type = obj['check_type']
 
             test_paramlist = list()
-            assert comp_type in ['g++', 'clang++', 'makefile', 'python3']
+            assert comp_type in ['gcc', 'g++', 'clang++', 'makefile', 'python3', 'rustc']
             assert check_type in ['diff', 'ioredir']
 
             for test in test_list:

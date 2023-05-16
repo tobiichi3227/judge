@@ -297,6 +297,12 @@ class StdChal:
             elif self.comp_typ == 'python3':
                 ret, verdict = yield self.comp_python()
 
+            elif self.comp_typ == 'gcc':
+                ret, verdict = yield self.comp_c11()
+
+            elif self.comp_typ == 'rustc':
+                ret, verdict = yield self.comp_rustc()
+
             if ret != PyExt.DETECT_NONE:
                 return [(0, 0, STATUS_CE, verdict)] * len(self.test_list)
             print('StdChal %d compiled'%self.chal_id)
@@ -304,8 +310,8 @@ class StdChal:
             # Prepare test arguments
             if self.comp_typ == 'python3':
                 exefile_path = self.chal_path \
-                    + '/compile/__pycache__/test.cpython-34.pyc'
-                exe_path = '/usr/bin/python3.5'
+                    + '/compile/__pycache__/test.cpython-38.pyc'
+                exe_path = '/usr/bin/python3.8'
                 argv = ['./a.out']
                 envp = ['HOME=/', 'LANG=en_US.UTF-8']
 
@@ -369,7 +375,7 @@ class StdChal:
 
     @concurrent.return_future
     def comp_cxx(self, callback=None):
-        '''GCC, Clang compile.
+        '''G++, Clang++ compiler, C++17 Standard.
 
         Args:
             callback (function): Callback of return_future.
@@ -438,7 +444,7 @@ class StdChal:
         task_id = PyExt.create_task(compiler, \
             [
                 '-O2',
-                '-std=c++14',
+                '-std=c++17',
                 '-o', './a.out',
                 './test.cpp',
             ], \
@@ -520,7 +526,7 @@ class StdChal:
 
     @concurrent.return_future
     def comp_python(self, callback=None):
-        '''Python3.4 compile.
+        '''Python3.8 compile.
 
         Args:
             callback (function): Callback of return_future.
@@ -598,6 +604,190 @@ class StdChal:
             }, \
             '/home/%d/compile'%self.uniqid, 'container/standard', \
             self.compile_uid, self.compile_gid, 60000, 1024 * 1024 * 1024, \
+            PyExt.RESTRICT_LEVEL_LOW)
+
+        if task_id is None:
+            os.close(errpipe_fd)
+            callback((PyExt.DETECT_INTERNALERR, ''))
+            return
+
+        PyExt.start_task(task_id, _done_cb, _started_cb)
+
+    @concurrent.return_future
+    def comp_c11(self, callback=None):
+        '''GCC Compiler, C11 Standard.
+
+        Args:
+            callback (function): Callback of return_future.
+
+        Returns:
+            None
+
+        '''
+
+        def _started_cb(task_id):
+            '''Started callback.
+
+            Close unused file descriptors after the task is started.
+
+            Args:
+                task_id (int): Task ID.
+
+            Returns:
+                None
+
+            '''
+
+            nonlocal errpipe_fd
+
+            os.close(errpipe_fd)
+
+        def _done_cb(task_id, stat):
+            '''Done callback.
+
+            Args:
+                task_id (int): Task ID.
+                stat (dict): Task result.
+
+            Returns:
+                None
+
+            '''
+
+            nonlocal compile_path
+
+            with StackContext(Privilege.fileaccess):
+                verfile = open(compile_path + '/verdict.txt', 'rb')
+                # To fix decoding error.
+                # Force convert the binary string to string temporarily.
+                # verdict = ''.join(chr(c) for c in verfile.read(140))
+                verdict = verfile.read().decode().replace('\t', '    ')
+                verfile.close()
+            callback((stat['detect_error'], verdict))
+
+        compile_path = self.chal_path + '/compile'
+        with StackContext(Privilege.fileaccess):
+            os.mkdir(compile_path, mode=0o770)
+            shutil.copyfile(self.code_path, compile_path + '/test.c', \
+                follow_symlinks=False)
+        FileUtils.setperm(compile_path, self.compile_uid, self.compile_gid)
+
+        with StackContext(Privilege.fileaccess):
+            errpipe_fd = os.open(compile_path + '/verdict.txt', \
+                os.O_WRONLY | os.O_CREAT | os.O_CLOEXEC, mode=0o440)
+
+        compiler = '/usr/bin/gcc'
+
+        task_id = PyExt.create_task(compiler, \
+            [
+                '-O2',
+                '-std=c11',
+                '-o', './a.out',
+                './test.cpp',
+                '-lm',
+            ], \
+            [
+                'PATH=/usr/bin:/bin',
+                'TMPDIR=/home/%d/compile'%self.uniqid,
+            ], \
+            {
+                0: StdChal.null_fd,
+                1: StdChal.null_fd,
+                2: errpipe_fd,
+            }, \
+            '/home/%d/compile'%self.uniqid, 'container/standard', \
+            self.compile_uid, self.compile_gid, 60000, 1024 * 1024 * 1024, \
+            PyExt.RESTRICT_LEVEL_LOW)
+
+        if task_id is None:
+            os.close(errpipe_fd)
+            callback((PyExt.DETECT_INTERNALERR, ''))
+            return
+
+        PyExt.start_task(task_id, _done_cb, _started_cb)
+
+    @concurrent.return_future
+    def comp_rustc(self, callback=None):
+        '''Rust Compiler, Version 1.65.
+
+        Args:
+            callback (function): Callback of return_future.
+
+        Returns:
+            None
+
+        '''
+
+        def _started_cb(task_id):
+            '''Started callback.
+
+            Close unused file descriptors after the task is started.
+
+            Args:
+                task_id (int): Task ID.
+
+            Returns:
+                None
+
+            '''
+
+            nonlocal errpipe_fd
+
+            os.close(errpipe_fd)
+
+        def _done_cb(task_id, stat):
+            '''Done callback.
+
+            Args:
+                task_id (int): Task ID.
+                stat (dict): Task result.
+
+            Returns:
+                None
+
+            '''
+
+            nonlocal compile_path
+
+            with StackContext(Privilege.fileaccess):
+                verfile = open(compile_path + '/verdict.txt', 'rb')
+                # To fix decoding error.
+                # Force convert the binary string to string temporarily.
+                # verdict = ''.join(chr(c) for c in verfile.read(140))
+                verdict = verfile.read().decode().replace('\t', '    ')
+                verfile.close()
+            callback((stat['detect_error'], verdict))
+
+        compile_path = self.chal_path + '/compile'
+        with StackContext(Privilege.fileaccess):
+            os.mkdir(compile_path, mode=0o770)
+            shutil.copyfile(self.code_path, compile_path + '/test.rs', \
+                follow_symlinks=False)
+        FileUtils.setperm(compile_path, self.compile_uid, self.compile_gid)
+
+        with StackContext(Privilege.fileaccess):
+            errpipe_fd = os.open(compile_path + '/verdict.txt', \
+                os.O_WRONLY | os.O_CREAT | os.O_CLOEXEC, mode=0o440)
+
+        compiler = '/usr/bin/rustc'
+
+        task_id = PyExt.create_task(compiler, \
+            [
+                './test.rs',
+                '-O',
+                '-o', './a.out',
+            ], \
+            [
+                'PATH=/usr/bin:/bin',
+                'TMPDIR=/home/%d/compile'%self.uniqid,
+            ], \
+            {
+                0: StdChal.null_fd,
+                1: StdChal.null_fd,
+                2: errpipe_fd,
+            }, \
+            '/home/%d/compile'%self.uniqid, 'container/standard', \
+            self.compile_uid, self.compile_gid, 80000, 1024 * 1024 * 1024, \
             PyExt.RESTRICT_LEVEL_LOW)
 
         if task_id is None:
@@ -826,7 +1016,7 @@ class IORedirJudge:
             if not os.path.isfile(self.build_path + '/build'):
                 callback(True)
                 return
-        
+
         # Make the build file executable.
         with StackContext(Privilege.fullaccess):
             os.chmod(self.build_path + '/build', mode=0o770)

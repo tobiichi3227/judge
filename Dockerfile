@@ -1,18 +1,20 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 ARG TRAVIS_COMMIT
 ENV TRAVIS_COMMIT $TRAVIS_COMMIT
 
 RUN apt-get update && apt-get install -y \
-    python3.6 \
+    python3.8 \
     python3-pip \
     clang \
     gcc \
     g++ \
+    llvm \
     cmake \
     libcgroup-dev \
     git \
     sudo \
-    acl
+    acl \
+    rustc
 
 RUN if [ "${TRAVIS_COMMIT}" ]; then \
     mkdir judge && \
