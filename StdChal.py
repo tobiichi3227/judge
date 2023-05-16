@@ -587,7 +587,7 @@ class StdChal:
             errpipe_fd = os.open(compile_path + '/verdict.txt', \
                 os.O_WRONLY | os.O_CREAT | os.O_CLOEXEC, mode=0o440)
 
-        task_id = PyExt.create_task('/usr/bin/python3.5', \
+        task_id = PyExt.create_task('/usr/bin/python3.8', \
             [
                 '-m',
                 'py_compile',
@@ -683,7 +683,7 @@ class StdChal:
                 '-O2',
                 '-std=c11',
                 '-o', './a.out',
-                './test.cpp',
+                './test.c',
                 '-lm',
             ], \
             [
