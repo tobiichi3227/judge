@@ -1,6 +1,8 @@
 FROM ubuntu:20.04
 ARG TRAVIS_COMMIT
 ENV TRAVIS_COMMIT $TRAVIS_COMMIT
+ENV TZ=Asia/Taipei
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update && apt-get install -y \
     python3.8 \
