@@ -77,8 +77,8 @@ class JudgeDispatcher:
                 data_ids = test['metadata']['data']
                 for data_id in data_ids:
                     test_paramlist.append({
-                        'in': res_path + '/testdata/%d.in'%data_id,
-                        'ans': res_path + '/testdata/%d.out'%data_id,
+                        'in': res_path + '/testdata/%s.in'%data_id,
+                        'ans': res_path + '/testdata/%s.out'%data_id,
                         'timelimit': timelimit,
                         'memlimit': memlimit,
                     })
